@@ -1,6 +1,7 @@
 package org.cs6367.listener;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
@@ -9,6 +10,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.cs6367.agent.Agent;
 import org.cs6367.agent.LogStatementCoverage;
 import org.cs6367.agent.Utilities;
 import org.junit.runner.Description;
@@ -53,17 +55,29 @@ public class Listener extends RunListener {
     // write the sorted map in the file
     BufferedWriter bw = null;
     FileWriter fw = null;
-    StringBuilder writeToFile = new StringBuilder();
-
+    StringBuffer writeToFile = new StringBuffer();
+    
+    writeToFile.append("package " + Agent.className.replace("/", ".") + ";\n\n");
+    writeToFile.append("import org.junit.runner.RunWith;");
+    writeToFile.append("\n");
+    writeToFile.append("import org.junit.runners.Suite;");
+    writeToFile.append("\n");
+    writeToFile.append("@RunWith(Suite.class)\n\n");
+    writeToFile.append("@Suite.SuiteClasses({");
+    writeToFile.append("\n");
+    
     try {
       String content = new String();
 
       for (Map.Entry<String, HashSet<String>> entry : sortedMap.entrySet()) {
-        content = entry.getKey()+ ":" + entry.getValue().size() + "\n";
+        content = "\t" + entry.getKey()+ ".class,\n"; // entry.getValue().size() + "\n";
         writeToFile.append(content);
       }
+      
 
-      fw = new FileWriter("stmt-cov.txt", true);
+      writeToFile.append("})\n");
+      writeToFile.append("public class TotalStrategyTestSuite {\n}");
+      fw = new FileWriter("src/test/java/"+Agent.className+"/TotalStrategyTestSuite.java");
       bw = new BufferedWriter(fw);
       bw.write(writeToFile.toString());
       bw.newLine();
@@ -82,6 +96,16 @@ public class Listener extends RunListener {
     }
 
     /***** Total Stratgey ends *********/
+    writeToFile = new StringBuffer();
+    writeToFile.append("package " + Agent.className.replace("/", ".") + ";\n\n");
+    writeToFile.append("import org.junit.runner.RunWith;");
+    writeToFile.append("\n");
+    writeToFile.append("import org.junit.runners.Suite;");
+    writeToFile.append("\n");
+    writeToFile.append("@RunWith(Suite.class)\n\n");
+    writeToFile.append("@Suite.SuiteClasses({");
+    writeToFile.append("\n");
+    
     while(sortedMap.size()>0){
 
     String testName = new String();
@@ -89,28 +113,8 @@ public class Listener extends RunListener {
 
     for (Entry<String, HashSet<String>> entry : sortedMap.entrySet()) {
       testName = entry.getKey();
-      testLines = entry.getValue();
+      writeToFile.append("\t" + testName+ ".class,\n" );
       break;
-    }
-
-    try {
-
-      fw = new FileWriter("stmt-cov-additional.txt", true);
-      bw = new BufferedWriter(fw);
-      bw.write(testName+":"+testLines.size());
-      bw.newLine();
-
-    } catch (IOException e) {
-      e.printStackTrace();
-    } finally {
-      try {
-        if (bw != null)
-          bw.close();
-        if (fw != null)
-          fw.close();
-      } catch (IOException ex) {
-        ex.printStackTrace();
-      }
     }
     
     // remove this test from the hashmap - add it to a file
@@ -140,6 +144,27 @@ public class Listener extends RunListener {
     sortedMap = Utilities
         .sortByComparator(sortedMap);
 
+    }
+    
+    writeToFile.append("})\n");
+    writeToFile.append("public class AdditionalStrategyTestSuite {\n}");
+    
+    try {
+      fw = new FileWriter("src/test/java/"+Agent.className+"/AdditionalStrategyTestSuite.java");
+      bw = new BufferedWriter(fw);
+      bw.write(writeToFile.toString());
+      bw.newLine();
+    } catch (IOException e) {
+      e.printStackTrace();
+    } finally {
+      try {
+        if (bw != null)
+          bw.close();
+        if (fw != null)
+          fw.close();
+      } catch (IOException ex) {
+        ex.printStackTrace();
+      }
     }
   }
 }
