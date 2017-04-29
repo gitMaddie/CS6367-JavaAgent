@@ -36,7 +36,7 @@ public class Listener extends RunListener {
 
   public void testFinished(Description description) throws Exception {
     // add all lines covered by this test
-    String key = description.getClassName() + ":" + description.getMethodName();
+    String key = description.getClassName();// + ":" + description.getMethodName();
 
     if (!coverageStateMap.containsKey(key))
       coverageStateMap.put(key, LogStatementCoverage.linesCovered);
@@ -50,7 +50,6 @@ public class Listener extends RunListener {
     Map<String, HashSet<String>> sortedMap = Utilities
         .sortByComparator(coverageStateMap);
 
-    // sortedMap has total strategy
     // write the sorted map in the file
     BufferedWriter bw = null;
     FileWriter fw = null;
@@ -60,7 +59,7 @@ public class Listener extends RunListener {
       String content = new String();
 
       for (Map.Entry<String, HashSet<String>> entry : sortedMap.entrySet()) {
-        content = entry.getKey() + ":" + entry.getValue().size() + "\n";
+        content = entry.getKey()+ ":" + entry.getValue().size() + "\n";
         writeToFile.append(content);
       }
 
