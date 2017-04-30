@@ -38,10 +38,23 @@ public class Listener extends RunListener {
 
   public void testFinished(Description description) throws Exception {
     // add all lines covered by this test
-    String key = description.getClassName();// + ":" + description.getMethodName();
+    String key = description.getClassName();// + ":" +
+                                            // description.getMethodName();
 
     if (!coverageStateMap.containsKey(key))
       coverageStateMap.put(key, LogStatementCoverage.linesCovered);
+    else {
+      HashSet<String> lines = coverageStateMap.get(key);
+      HashSet<String> currentLines = LogStatementCoverage.linesCovered;
+
+      for (String line : currentLines) {
+        if (!lines.contains(line)) {
+          lines.add(line);
+        }
+      }
+      
+      coverageStateMap.put(key, lines);
+    }
 
     return;
   }
@@ -56,8 +69,9 @@ public class Listener extends RunListener {
     BufferedWriter bw = null;
     FileWriter fw = null;
     StringBuffer writeToFile = new StringBuffer();
-    
-    writeToFile.append("package " + Agent.className.replace("/", ".") + ";\n\n");
+
+    writeToFile
+        .append("package " + Agent.className.replace("/", ".") + ";\n\n");
     writeToFile.append("import org.junit.runner.RunWith;");
     writeToFile.append("\n");
     writeToFile.append("import org.junit.runners.Suite;");
@@ -65,19 +79,19 @@ public class Listener extends RunListener {
     writeToFile.append("@RunWith(Suite.class)\n\n");
     writeToFile.append("@Suite.SuiteClasses({");
     writeToFile.append("\n");
-    
+
     try {
       String content = new String();
 
       for (Map.Entry<String, HashSet<String>> entry : sortedMap.entrySet()) {
-        content = "\t" + entry.getKey()+ ".class,\n"; // entry.getValue().size() + "\n";
+        content = "\t" + entry.getKey() + ".class,\n";
         writeToFile.append(content);
       }
-      
 
       writeToFile.append("})\n");
       writeToFile.append("public class TotalStrategyTestSuite {\n}");
-      fw = new FileWriter("src/test/java/"+Agent.className+"/TotalStrategyTestSuite.java");
+      fw = new FileWriter(
+          "src/test/java/" + Agent.className + "/TotalStrategyTestSuite.java");
       bw = new BufferedWriter(fw);
       bw.write(writeToFile.toString());
       bw.newLine();
@@ -97,7 +111,8 @@ public class Listener extends RunListener {
 
     /***** Total Stratgey ends *********/
     writeToFile = new StringBuffer();
-    writeToFile.append("package " + Agent.className.replace("/", ".") + ";\n\n");
+    writeToFile
+        .append("package " + Agent.className.replace("/", ".") + ";\n\n");
     writeToFile.append("import org.junit.runner.RunWith;");
     writeToFile.append("\n");
     writeToFile.append("import org.junit.runners.Suite;");
@@ -105,52 +120,53 @@ public class Listener extends RunListener {
     writeToFile.append("@RunWith(Suite.class)\n\n");
     writeToFile.append("@Suite.SuiteClasses({");
     writeToFile.append("\n");
-    
-    while(sortedMap.size()>0){
 
-    String testName = new String();
-    HashSet<String> testLines = new HashSet<String>();
+    while (sortedMap.size() > 0) {
 
-    for (Entry<String, HashSet<String>> entry : sortedMap.entrySet()) {
-      testName = entry.getKey();
-      writeToFile.append("\t" + testName+ ".class,\n" );
-      break;
-    }
-    
-    // remove this test from the hashmap - add it to a file
-    sortedMap.remove(testName);
+      String testName = new String();
+      HashSet<String> testLines = new HashSet<String>();
 
-    // all the lines covered by the test
-
-    Iterator<String> it = testLines.iterator();
-
-    while (it.hasNext()) {
-      // pick the current line and remove it from all the tests
-      String line = it.next();
-      
-      // iterate through the hashmap and remove this line from other tests
       for (Entry<String, HashSet<String>> entry : sortedMap.entrySet()) {
-        HashSet<String> test = entry.getValue();
-        if (test.contains(line)) {
-          test.remove(line);
-        }
-        entry.setValue(test);
+        testName = entry.getKey();
+        testLines = entry.getValue();
+        String content = "\t" + entry.getKey() + ".class,\n";
+        writeToFile.append(content);
+        break;
       }
-      
-    }
-    // all entries of the sortedMap have the new set of lines now
-    
-    // sort this new map again
-    sortedMap = Utilities
-        .sortByComparator(sortedMap);
+
+      // remove this test from the hashmap - add it to a file
+      sortedMap.remove(testName);
+
+      // all the lines covered by the test
+      Iterator<String> it = testLines.iterator();
+
+      while (it.hasNext()) {
+        // pick the current line and remove it from all the tests
+        String line = it.next();
+
+        // iterate through the hashmap and remove this line from other tests
+        for (Entry<String, HashSet<String>> entry : sortedMap.entrySet()) {
+          HashSet<String> test = entry.getValue();
+          if (test.contains(line)) {
+            test.remove(line);
+          }
+          entry.setValue(test);
+        }
+
+      }
+      // all entries of the sortedMap have the new set of lines now
+
+      // sort this new map again
+      sortedMap = Utilities.sortByComparator(sortedMap);
 
     }
-    
+
     writeToFile.append("})\n");
     writeToFile.append("public class AdditionalStrategyTestSuite {\n}");
-    
+
     try {
-      fw = new FileWriter("src/test/java/"+Agent.className+"/AdditionalStrategyTestSuite.java");
+      fw = new FileWriter("src/test/java/" + Agent.className
+          + "/AdditionalStrategyTestSuite.java");
       bw = new BufferedWriter(fw);
       bw.write(writeToFile.toString());
       bw.newLine();
