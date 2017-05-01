@@ -1,4 +1,4 @@
-package org.cs6367.MetricsListener;
+package org.cs6367.metrics;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -17,7 +17,7 @@ import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
-public class Listerner extends RunListener {
+public class Listener extends RunListener {
 
   public static long startTime = 0;
 
