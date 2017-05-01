@@ -60,9 +60,31 @@ Lets create pom-total.xml which is same as pom.xml but with below modification t
   
   5. Now run mvn -f pom-total.xml to run test cases prioritized by the Total Test Prioritization
   
-  6. For additional strategy, change the test suite name in the pom.xml 
-     <includes>
-						<include>**/AdditionalStrategyTestSuite.java</include>
-		 </includes>
+  6. For additional strategy, change the test suite name in the pom.xml. We include an additional JUnit listener to track time for first failure.
+  
+     <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<!-- <argLine>-javaagent:agent.jar=org/apache/commons/dbutils</argLine> -->
+					<properties>
+						<property>
+							<name>listener</name>
+							<value>org.cs6367.listener.FailureListener</value>
+						</property>
+					</properties>
+					<testFailureIgnore>true</testFailureIgnore>
+					<excludes>
+						<exclude>**/BaseTestCase.java</exclude>
+						<exclude>**/*Test.java</exclude>
+					</excludes>
+					<includes> <include>**/TotalStrategyTestSuite.java</include> 
+						</includes> <additionalClasspathElements> <additionalClasspathElement>${project.build.sourceDirectory}</additionalClasspathElement> 
+						<additionalClasspathElement>${project.build.testSourceDirectory}</additionalClasspathElement> 
+						</additionalClasspathElements> <useManifestOnlyJar>false</useManifestOnlyJar> 
+						<forkMode>always</forkMode>
+				</configuration>
+
+			</plugin>
      
      Run mvn test -f pom-additional
